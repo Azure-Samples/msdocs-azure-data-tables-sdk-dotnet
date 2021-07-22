@@ -1,0 +1,652 @@
+﻿@page
+@using AzureTablesDemoApplication.Models
+@using AzureTablesDemoApplication.Utilities
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<!-- Error Messages (if there is one) --> 
+@if (TempData.ContainsKey("errors"))
+{
+    var errors = TempData.Get<IEnumerable<MessageModel>>("errors") as IEnumerable<MessageModel>;
+    foreach (var error in errors)
+    {
+        <div class="alert @error.Level.ToCssClass() alert-dismissible fade show" role="alert">
+            @error.Message
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">            
+            </button>
+        </div>        
+    }
+}
+
+
+<div class="row justify-content-evenly">
+    <div class="col-auto">
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#insertUsingTableEntity">Insert using Table Entity</button>
+    </div>     
+    <div class="col-auto">
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#insertUsingCustomEntity">Insert using Custom Entity</button>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#insertUsingExpandedData">Insert using Expandable Data</button>
+    </div>    
+    <div class="col-auto">
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#insertBulkData">Insert Bulk Data</button>
+    </div>
+</div>
+
+<hr />
+
+
+<h3>Weather Data</h3>
+<table class="table table-sm mb-1">
+    <thead>
+        <tr>
+            <th>Station Name</th>
+            <th>Observation Date</th>
+            @foreach (var columnName in Model.ColumnNames)
+            {
+                <th>@columnName</th>
+            }
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+
+@foreach( dynamic item in Model.WeatherObservations)
+{
+
+    <tr>
+        <td>@item.PartitionKey</td>
+        <td>@item.RowKey</td>
+        @foreach (var column in Model.ColumnNames)
+        {
+            <td>@item[column]</td>
+        }
+        <td class="text-end">
+            <button class="btn btn-primary btn-sm entity-update" data-table-entity="@FormatEntityAsJson(item)">Update</button>
+
+            <form method="post" class="d-inline-block">
+                <input type="hidden" name="partitionKey" value="@item.PartitionKey" />
+                <input type="hidden" name="rowKey" value="@item.RowKey" />
+                <button asp-page-handler="RemoveEntity" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+        </td>
+    </tr>
+}
+</table>
+
+
+
+<!-- Insert with TableEntity Dialog -->
+<div id="insertUsingTableEntity" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="post">            
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Insert using TableEntity</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="stationNameTableEntity" class="col-form-label">Station Name</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="stationNameTableEntity" name="stationName" class="form-control" placeholder="Weather station name">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="observationDateTableEntity" class="col-form-label">Date/Time</label>
+                      </div>
+                      <div class="col-sm-4">
+                        <input type="date" id="observationDateTableEntity" name="observationDate" class="form-control">
+                      </div>
+                      <div class="col-sm-4">
+                        <input type="time" id="observationTimeTableEntity" name="observationTime" class="form-control">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="temperatureTableEntity" class="col-form-label">Temperature</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="temperatureTableEntity" name="Temperature" class="form-control" placeholder="Current temperature">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="humidityTableEntity" class="col-form-label">Humidity</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="humidityTableEntity" name="Humidity" class="form-control" placeholder="% Humidity">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="barometerTableEntity" class="col-form-label">Barometer</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="barometerTableEntity" name="Barometer" class="form-control" placeholder="Atmospheric pressure">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="windSpeedTableEntity" class="col-form-label">Wind Direction</label>
+                      </div>
+                      <div class="col-sm-8">
+                          <select id="windDirectionTableEntity" name="WindDirection" class="form-control">
+                              <option>CALM</option>
+                              <option>N</option>
+                              <option>NE</option>
+                              <option>NW</option>
+                              <option>E</option>
+                              <option>W</option>
+                              <option>SW</option>
+                              <option>SE</option>
+                              <option>S</option>
+                              <option>VARIABLE</option>
+                          </select>
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="windSpeedTableEntity" class="col-form-label">Wind Speed</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="windSpeedTableEntity" name="WindSpeed" class="form-control" placeholder="Wind speed">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="precipitationTableEntity" class="col-form-label">Precipitation</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="precipitationTableEntity" name="Precipitation" class="form-control" placeholder="Precipitation">
+                      </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" asp-page-handler="insertTableEntity">Insert</button>
+                    <button type="submit" class="btn btn-primary" asp-page-handler="upsertTableEntity">Upsert</button>
+                </div>
+            </div>
+        </form>
+        <!-- </form> -->
+    </div>
+</div>
+
+
+<!-- Insert with CustomEntity Dialog -->
+<div id="insertUsingCustomEntity" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="post">            
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Insert using Custom Entity (implementing ITableEntity)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="stationNameCustomEntity" class="col-form-label">Station Name</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="stationNameCustomEntity" name="stationName" class="form-control" placeholder="Weather station name">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="observationDateCustomEntity" class="col-form-label">Date/Time</label>
+                      </div>
+                      <div class="col-sm-4">
+                        <input type="date" id="observationDateCustomEntity" name="observationDate" class="form-control">
+                      </div>
+                      <div class="col-sm-4">
+                        <input type="time" id="observationTimeCustomEntity" name="observationTime" class="form-control">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="temperatureCustomEntity" class="col-form-label">Temperature</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="temperatureCustomEntity" name="Temperature" class="form-control" placeholder="Current temperature">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="humidityCustomEntity" class="col-form-label">Humidity</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="humidityCustomEntity" name="Humidity" class="form-control" placeholder="% Humidity">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="barometerCustomEntity" class="col-form-label">Barometer</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="barometerCustomEntity" name="Barometer" class="form-control" placeholder="Atmospheric pressure">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="windSpeedCustomEntity" class="col-form-label">Wind Direction</label>
+                      </div>
+                      <div class="col-sm-8">
+                          <select id="windDirectionCustomEntity" name="WindDirection" class="form-control">
+                              <option>CALM</option>
+                              <option>N</option>
+                              <option>NE</option>
+                              <option>NW</option>
+                              <option>E</option>
+                              <option>W</option>
+                              <option>SW</option>
+                              <option>SE</option>
+                              <option>S</option>
+                              <option>VARIABLE</option>
+                          </select>
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="windSpeedCustomEntity" class="col-form-label">Wind Speed</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="windSpeedCustomEntity" name="WindSpeed" class="form-control" placeholder="Wind speed">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="precipitationCustomEntity" class="col-form-label">Precipitation</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="precipitationCustomEntity" name="Precipitation" class="form-control" placeholder="Precipitation">
+                      </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" asp-page-handler="insertCustomEntity">Insert</button>
+                    <button type="submit" class="btn btn-primary" asp-page-handler="upsertCustomEntity">Upsert</button>
+                </div>
+            </div>
+        </form>
+        <!-- </form> -->
+    </div>
+</div>
+
+
+
+
+
+
+<!-- Insert Expandable Data Dialog -->
+<div id="insertUsingExpandedData" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="post">            
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Insert using Custom Entity (implementing ITableEntity)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="stationNameExpandable" class="col-form-label">Station Name</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="stationNameExpandable" name="stationName" class="form-control" placeholder="Weather station name">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="observationDateExpandable" class="col-form-label">Date/Time</label>
+                      </div>
+                      <div class="col-sm-4">
+                        <input type="date" id="observationDateExpandable" name="observationDate" class="form-control">
+                      </div>
+                      <div class="col-sm-4">
+                        <input type="time" id="observationTimeExpandable" name="observationTime" class="form-control">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="temperatureExpandable" class="col-form-label">Temperature</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="temperatureExpandable" name="Temperature" class="form-control" placeholder="Current temperature">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="humidityExpandable" class="col-form-label">Humidity</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="humidityExpandable" name="Humidity" class="form-control" placeholder="% Humidity">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="barometerExpandable" class="col-form-label">Barometer</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="barometerExpandable" name="Barometer" class="form-control" placeholder="Atmospheric pressure">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="windSpeedExpandable" class="col-form-label">Wind Direction</label>
+                      </div>
+                      <div class="col-sm-8">
+                          <select id="windDirectionExpandable" name="WindDirection" class="form-control">
+                              <option>CALM</option>
+                              <option>N</option>
+                              <option>NE</option>
+                              <option>NW</option>
+                              <option>E</option>
+                              <option>W</option>
+                              <option>SW</option>
+                              <option>SE</option>
+                              <option>S</option>
+                              <option>VARIABLE</option>
+                          </select>
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="windSpeedExpandable" class="col-form-label">Wind Speed</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="windSpeedExpandable" name="WindSpeed" class="form-control" placeholder="Wind speed">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="precipitationExpandable" class="col-form-label">Precipitation</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="precipitationExpandable" name="Precipitation" class="form-control" placeholder="Precipitation">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="cloudCoverExpandable" class="col-form-label">Cloud Cover</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="cloudCoverExpandable" name="CloudCover" class="form-control" placeholder="Percent Cloud Cover">
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="uvIndexExpandable" class="col-form-label">UV Index</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <input type="text" id="uvIndexExpandable" name="UvIndex" class="form-control" placeholder="UV Index">
+                      </div>
+                    </div>
+
+                    <div id="addCustomFieldDiv" class="row g-3 align-self-end">
+                      <div class="col-sm-4">
+                          <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#customFieldModel">Add Custom Field</button>
+                      </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" asp-page-handler="insertExpandableData">Insert</button>
+                    <button type="submit" class="btn btn-primary" asp-page-handler="upsertCustomEntity">Upsert</button>
+                </div>
+            </div>
+        </form>
+        <!-- </form> -->
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="customFieldModel" tabindex="-2" aria-labelledby="customFieldModelLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="customFieldModelLabel">Add custom field</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+            <div class="row g-3 mb-2">
+              <div class="col-sm-6">
+                <label for="customFieldName" class="col-form-label">Custom field name</label>
+              </div>
+              <div class="col-sm-6">
+                <input type="text" id="customFieldName" name="FieldName" class="form-control" placeholder="Name">
+              </div>
+            </div>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="customFieldButton" type="button" class="btn btn-primary" data-bs-dismiss="modal">Add field</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Bulk Insert Dialog -->
+<div id="insertBulkData" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post">            
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Insert bulk data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="bulkDataUnits" class="col-form-label">Units</label>
+                      </div>
+                      <div class="col-sm-8">
+                          <select id="bulkDataUnits" name="Units" class="form-control">
+                              <option>Metric</option>
+                              <option>US</option>
+                          </select>
+                      </div>
+                    </div>
+
+                    <div class="row g-3 mb-2">
+                      <div class="col-sm-4">
+                        <label for="bulkDataCity" class="col-form-label">City</label>
+                      </div>
+                      <div class="col-sm-8">
+                          <select id="bulkDataCity" name="City" class="form-control">
+                              <option>Anchorage</option>
+                              <option>Chicago</option>
+                              <option>Miami</option>
+                              <option>Phoenix</option>
+                          </select>
+                      </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" asp-page-handler="insertBulkData">Insert</button>
+                    <button type="submit" class="btn btn-primary" asp-page-handler="upsertBulkData">Upsert</button>
+                </div>
+            </div>
+        </form>
+        <!-- </form> -->
+    </div>
+</div>
+
+
+
+
+<!-- Update Entity Modal -->
+<div class="modal fade" id="updateEntityModel" tabindex="-2" aria-labelledby="updateEntityLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+      <form method="post">            
+        <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="updateEntityLabel">Update entity</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="updateEntityDiv" class="modal-body">
+                        
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button id="updateEntityButton" type="submit" class="btn btn-primary" asp-page-handler="updateEntity">Update Entity</button>
+            </div>
+        </div>
+    </form>>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+@functions {
+    public static string FormatEntityAsJson(Azure.Data.Tables.TableEntity entity)
+    {
+        var fieldNames = entity.Keys.Where(key => !(new string[]{ "PartitionKey", "RowKey", "odata.etag", "Timestamp" }).Contains(key));
+        var fields = fieldNames.Select(fieldName => new { FieldName = fieldName, Value = entity[fieldName] });
+
+        var data = new { PartitionKey = entity.PartitionKey, RowKey = entity.RowKey, Fields = fields };
+
+        return System.Text.Json.JsonSerializer.Serialize(data);
+    }
+}
+
+
+
+@section Scripts
+{
+    <script src="~/lib/handlebars/handlebars-v4.7.7.js"></script>
+
+    <!-- The handlebars.js template for the row the custom field will go into-->
+    <script id="custom-field-template" type="text/x-handlebars-template">
+        <div id="{{fieldName}}Div" class="row g-3">
+          <div class="col-sm-4">
+            <label for="{{fieldName}}Expandable" class="col-form-label">{{fieldText}}</label>
+          </div>
+          <div class="col-sm-7">
+            <input type="text" id="{{fieldName}}Expandable" name="{{fieldName}}" class="form-control" placeholder="{{fieldText}} value">
+          </div>
+          <div class="col-sm-1 text-end">
+              <button id="{{fieldName}}Remove" class="btn btn-danger">X</button>
+          </div>
+        </div>
+    </script>
+
+
+    <!-- The handlebars.js template for updating an entity-->
+    <script id="entity-update-template" type="text/x-handlebars-template">      
+        <div class="row g-3 mb-2">
+          <div class="col-sm-4">
+            <label for="PartitionKeyUpdate" class="col-form-label">Partition Key</label>
+          </div>
+          <div class="col-sm-8">
+            <input type="text" id="PartitionKeyUpdate" name="PartitionKey" class="form-control" value="{{PartitionKey}}" readonly="readonly">
+          </div>
+        </div>
+        <div class="row g-3 mb-2">
+          <div class="col-sm-4">
+            <label for="RowKeyUpdate" class="col-form-label">Row Key</label>
+          </div>
+          <div class="col-sm-8">
+            <input type="text" id="RowKeyUpdate" name="RowKey" class="form-control" value="{{RowKey}}" readonly="readonly">
+          </div>
+        </div>
+
+        <hr />
+
+        {{#each Fields}}
+            <div class="row g-3 mb-2">
+              <div class="col-sm-4">
+                <label for="{{this.FieldName}}Update" class="col-form-label">{{this.FieldName}}</label>
+              </div>
+              <div class="col-sm-8">
+                <input type="text" id="{{this.FieldName}}Update" name="{{this.FieldName}}" class="form-control" value="{{this.Value}}">
+              </div>
+            </div>
+	    {{/each}}
+
+    </script>
+
+
+    <script>    
+        $(document).ready(function() {
+            var templateBase = $('#custom-field-template').html();
+            var customFieldTemplate = Handlebars.compile(templateBase);
+
+            $("#customFieldButton").on('click', function() {
+                var text = $("#customFieldName").val();
+                var fieldName = text.replace(/ /g, '');
+
+                var data = { "fieldName": fieldName, "fieldText": text};
+                var html = customFieldTemplate(data);
+                
+                $("#addCustomFieldDiv").before(html);
+                
+                $("#" + fieldName + "Remove").on('click', function() {
+                    $("#" + fieldName + "Div").remove();
+                });
+            });
+            
+
+            // For Entity Updates
+            var updateEntityModel = new bootstrap.Modal(document.getElementById('updateEntityModel'));
+            var entityUpdateBase = $('#entity-update-template').html();
+            var entityUpdateTemplate = Handlebars.compile(entityUpdateBase);
+
+            $(".entity-update").on('click', function(event) {
+                var entity = $(event.target).data("table-entity");
+
+                var html = entityUpdateTemplate(entity);
+                
+                $("#updateEntityDiv").html(html);
+                updateEntityModel.show();
+            });
+
+        });
+    
+    </script>
+}
