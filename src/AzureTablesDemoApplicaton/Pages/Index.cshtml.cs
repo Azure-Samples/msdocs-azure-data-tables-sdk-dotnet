@@ -3,6 +3,7 @@ using Azure.Data.Tables;
 using AzureTablesDemoApplication.Data;
 using AzureTablesDemoApplication.Entities;
 using AzureTablesDemoApplication.Models;
+using AzureTablesDemoApplication.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
@@ -18,110 +19,56 @@ namespace AzureTablesDemoApplication.Pages
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
-        private TableClient _tableClient;
+        private TablesService _tablesService;
 
-        public string[] EXCLUDE_TABLE_ENTITY_KEYS = { "PartitionKey", "RowKey", "odata.etag", "Timestamp" };
 
         public string[] EXCLUDE_FORM_KEYS = { "stationName", "observationDate", "observationTime", "__RequestVerificationToken" };
 
 
-        public IndexModel(ILogger<IndexModel> logger, TableClient tableClient)
+        public IndexModel(ILogger<IndexModel> logger, TablesService tablesService)
         {
             _logger = logger;
-            _tableClient = tableClient;
+            _tablesService = tablesService;
         }
 
 
-        public IEnumerable<string> ColumnNames { get; set; }
-        public Pageable<TableEntity> WeatherObservations { get; set; }
+        public IEnumerable<string> FieldNames { get; set; }
+        public IEnumerable<WeatherDataModel> WeatherObservations { get; set; }
+
 
         public void OnGet()
         {
-            var entities = _tableClient.Query<TableEntity>();
+            WeatherObservations = _tablesService.GetAllRows();
 
-            ColumnNames = entities.SelectMany(e => e.Keys).Distinct().Where(key => !EXCLUDE_TABLE_ENTITY_KEYS.Contains(key));
-            WeatherObservations = entities;
-
-
+            FieldNames = WeatherObservations.SelectMany(e => e.FieldNames).Distinct();           
         }
-
 
 
         public IActionResult OnPostInsertTableEntity(WeatherInputModel model)
         {
-            TableEntity entity = new TableEntity();
-            entity.PartitionKey = model.StationName;
-            entity.RowKey = $"{model.ObservationDate} {model.ObservationTime}";
-
-            // The other values are added like a items to a dictionary
-            entity["Temperature"] = model.Temperature;
-            entity["Humidity"] = model.Humidity;
-            entity["Barometer"] = model.Barometer;
-            entity["WindDirection"] = model.WindDirection;
-            entity["WindSpeed"] = model.WindSpeed;
-            entity["Precipitation"] = model.Precipitation;
-
-            _tableClient.AddEntity(entity);
+            _tablesService.InsertTableEntity(model);
 
             return RedirectToPage("index", "Get");
         }
 
         public IActionResult OnPostUpsertTableEntity(WeatherInputModel model)
         {
-            TableEntity entity = new TableEntity();
-            entity.PartitionKey = model.StationName;
-            entity.RowKey = $"{model.ObservationDate} {model.ObservationTime}";
-
-            // The other values are added like a items to a dictionary
-            entity["Temperature"] = model.Temperature;
-            entity["Humidity"] = model.Humidity;
-            entity["Barometer"] = model.Barometer;
-            entity["WindDirection"] = model.WindDirection;
-            entity["WindSpeed"] = model.WindSpeed;
-            entity["Precipitation"] = model.Precipitation;
-
-            _tableClient.AddEntity(entity);
+            _tablesService.UpsertTableEntity(model);
 
             return RedirectToPage("index", "Get");
         }
 
 
-
         public IActionResult OnPostInsertCustomEntity(WeatherInputModel model)
         {
-            WeatherDataEntity customEntity = new WeatherDataEntity();
-            customEntity.PartitionKey = model.StationName;
-            customEntity.RowKey = $"{model.ObservationDate} {model.ObservationTime}";
-
-            // The remaining values are strongly typed properties on the custom entity type
-            customEntity.Temperature = model.Temperature;
-            customEntity.Humidity = model.Humidity;
-            customEntity.Barometer = model.Barometer;
-            customEntity.WindDirection = model.WindDirection;
-            customEntity.WindSpeed = model.WindSpeed;
-            customEntity.Precipitation = model.Precipitation;
-
-
-            _tableClient.AddEntity(customEntity);
+            _tablesService.InsertCustomEntity(model);
 
             return RedirectToPage("index", "Get");
         }
 
         public IActionResult OnPostUpsertCustomEntity(WeatherInputModel model)
         {
-            WeatherDataEntity customEntity = new WeatherDataEntity();
-            customEntity.PartitionKey = model.StationName;
-            customEntity.RowKey = $"{model.ObservationDate} {model.ObservationTime}";
-
-            // The remaining values are strongly typed properties on the custom entity type
-            customEntity.Temperature = model.Temperature;
-            customEntity.Humidity = model.Humidity;
-            customEntity.Barometer = model.Barometer;
-            customEntity.WindDirection = model.WindDirection;
-            customEntity.WindSpeed = model.WindSpeed;
-            customEntity.Precipitation = model.Precipitation;
-
-            _tableClient.AddEntity(customEntity);
+            _tablesService.UpsertCustomEntity(model);
 
             return RedirectToPage("index", "Get");
         }
@@ -129,52 +76,43 @@ namespace AzureTablesDemoApplication.Pages
 
         public IActionResult OnPostInsertExpandableData(ExpandableWeatherInputModel model)
         {
-            TableEntity entity = new TableEntity();
-            entity.PartitionKey = model.StationName;
-            entity.RowKey = $"{model.ObservationDate} {model.ObservationTime}";
+            // The station name (partition key) and date and time elements are in the model object
+            string partitionKey = model.StationName;
+            string rowKey = $"{model.ObservationDate} {model.ObservationTime}";
 
-            // Get the keys to the form, but remove the ones we have already handled
-            var dataKeys = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key));           
-            foreach (var key in dataKeys)
-            {
-                var value = Request.Form[key].First();
+            // The rest of the fields and values are in the form.  But we want to exclude the elements we
+            // already have from the model and the __RequestVerificationToken when we build our dictionary
+            var fields = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
+                .Select(key => new KeyValuePair<string, string>(key, Request.Form[key].First()))
+                .ToDictionary(item => item.Key, item => item.Value);
 
-                if (Double.TryParse(value, out double number))
-                    entity[key] = value;
-                else
-                    entity[key] = value;
-            }
-            _tableClient.AddEntity(entity);
+            _tablesService.InsertExpandableData(partitionKey, rowKey, fields);
 
             return RedirectToPage("index", "Get");
         }
+
 
         public IActionResult OnPostUpsertExpandableData(ExpandableWeatherInputModel model)
         {
-            TableEntity entity = new TableEntity();
-            entity.PartitionKey = model.StationName;
-            entity.RowKey = $"{model.ObservationDate} {model.ObservationTime}";
+            // The station name (partition key) and date and time elements are in the model object
+            string partitionKey = model.StationName;
+            string rowKey = $"{model.ObservationDate} {model.ObservationTime}";
 
-            // Get the keys to the form, but remove the ones we have already handled
-            var dataKeys = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key));
-            foreach (var key in dataKeys)
-            {
-                var value = Request.Form[key].First();
+            // The rest of the fields and values are in the form.  But we want to exclude the elements we
+            // already have from the model and the __RequestVerificationToken when we build our dictionary
+            var fields = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
+                .Select(key => new KeyValuePair<string, string>(key, Request.Form[key].First()))
+                .ToDictionary(item => item.Key, item => item.Value);
 
-                if (Double.TryParse(value, out double number))
-                    entity[key] = value;
-                else
-                    entity[key] = value;
-            }
-            _tableClient.AddEntity(entity);
+            _tablesService.UpsertExpandableData(partitionKey, rowKey, fields);
 
             return RedirectToPage("index", "Get");
         }
 
 
-        public IActionResult OnPostRemoveEntity(string partitionKey, string rowKey)
+        public IActionResult OnPostRemoveEntity(string stationName, string observationDate)
         {
-            _tableClient.DeleteEntity(partitionKey, rowKey);            
+            _tablesService.RemoveEntity(stationName, observationDate);            
 
             return RedirectToPage("index", "Get");
         }
@@ -184,29 +122,22 @@ namespace AzureTablesDemoApplication.Pages
         {
             var bulkData = SampleWeatherData.GetSampleData(units, city);
 
-            var transactionActions = bulkData.Select(item => new TableTransactionAction(TableTransactionActionType.Add, item));
-            var response = _tableClient.SubmitTransaction(transactionActions);
+            _tablesService.InsertBulkData(bulkData);
 
             return RedirectToPage("index", "Get");
         }
 
 
-        public IActionResult OnPostUpdateEntity(string partitionKey, string rowKey)
+        public IActionResult OnPostUpdateEntity(string stationName, string observationDate)
         {
-            TableEntity entity = _tableClient.GetEntity<TableEntity>(partitionKey, rowKey).Value;
-            
-            // Get the keys to the form, but remove the ones we have already handled
-            var dataKeys = Request.Form.Keys.Where(key => !(new string[] { "PartitionKey", "RowKey", "__RequestVerificationToken" }).Contains(key));
-            foreach (var key in dataKeys)
-            {
-                var value = Request.Form[key].First();
+            // The partition key (stationName) and row key (observationDate) are passed as parameters but
+            // to get the rest of the fields, we have to extract them from the from data (ignoring fields
+            // we already have and __RequestVerificationToken when we build our dictionary)          
+            var fields = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
+                .Select(key => new KeyValuePair<string, string>(key, Request.Form[key].First()))
+                .ToDictionary(item => item.Key, item => item.Value);
 
-                if (Double.TryParse(value, out double number))
-                    entity[key] = value;
-                else
-                    entity[key] = value;
-            }
-            _tableClient.UpdateEntity(entity, ETag.All );
+            _tablesService.UpdateEntity(stationName, observationDate, fields);
 
             return RedirectToPage("index", "Get");
         }

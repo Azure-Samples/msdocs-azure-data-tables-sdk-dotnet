@@ -1,5 +1,6 @@
 using Azure.Data.Tables;
 using AzureTablesDemoApplication.Filters;
+using AzureTablesDemoApplication.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -35,6 +36,8 @@ namespace AzureTablesDemoApplication
             var connectionString = Configuration.GetConnectionString("CosmosDatabase");
             //var connectionString = Configuration.GetConnectionString("StorageTables");
             services.AddSingleton<TableClient>(new TableClient(connectionString, "WeatherData"));
+
+            services.AddSingleton<TablesService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

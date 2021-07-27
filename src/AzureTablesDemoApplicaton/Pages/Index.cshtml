@@ -45,9 +45,9 @@
         <tr>
             <th>Station Name</th>
             <th>Observation Date</th>
-            @foreach (var columnName in Model.ColumnNames)
+            @foreach (var name in Model.FieldNames)
             {
-                <th>@columnName</th>
+                <th>@name</th>
             }
             <th class="text-end">Actions</th>
         </tr>
@@ -57,18 +57,18 @@
 {
 
     <tr>
-        <td>@item.PartitionKey</td>
-        <td>@item.RowKey</td>
-        @foreach (var column in Model.ColumnNames)
+        <td>@item.StationName</td>
+        <td>@item.ObservationDate</td>
+        @foreach (var name in Model.FieldNames)
         {
-            <td>@item[column]</td>
+            <td>@item[name]</td>
         }
         <td class="text-end">
             <button class="btn btn-primary btn-sm entity-update" data-table-entity="@FormatEntityAsJson(item)">Update</button>
 
             <form method="post" class="d-inline-block">
-                <input type="hidden" name="partitionKey" value="@item.PartitionKey" />
-                <input type="hidden" name="rowKey" value="@item.RowKey" />
+                <input type="hidden" name="stationName" value="@item.StationName" />
+                <input type="hidden" name="observationDate" value="@item.ObservationDate" />
                 <button asp-page-handler="RemoveEntity" class="btn btn-danger btn-sm">Delete</button>
             </form>
         </td>
@@ -544,12 +544,12 @@
 
 
 @functions {
-    public static string FormatEntityAsJson(Azure.Data.Tables.TableEntity entity)
+    public static string FormatEntityAsJson(WeatherDataModel model)
     {
-        var fieldNames = entity.Keys.Where(key => !(new string[]{ "PartitionKey", "RowKey", "odata.etag", "Timestamp" }).Contains(key));
-        var fields = fieldNames.Select(fieldName => new { FieldName = fieldName, Value = entity[fieldName] });
+        var fieldNames = model.FieldNames;
+        var fields = fieldNames.Select(fieldName => new { FieldName = fieldName, Value = model[fieldName] });
 
-        var data = new { PartitionKey = entity.PartitionKey, RowKey = entity.RowKey, Fields = fields };
+        var data = new { StationName = model.StationName, ObservationDate = model.ObservationDate, Fields = fields };
 
         return System.Text.Json.JsonSerializer.Serialize(data);
     }
@@ -584,7 +584,7 @@
             <label for="PartitionKeyUpdate" class="col-form-label">Partition Key</label>
           </div>
           <div class="col-sm-8">
-            <input type="text" id="PartitionKeyUpdate" name="PartitionKey" class="form-control" value="{{PartitionKey}}" readonly="readonly">
+            <input type="text" id="PartitionKeyUpdate" name="stationName" class="form-control" value="{{StationName}}" readonly="readonly">
           </div>
         </div>
         <div class="row g-3 mb-2">
@@ -592,7 +592,7 @@
             <label for="RowKeyUpdate" class="col-form-label">Row Key</label>
           </div>
           <div class="col-sm-8">
-            <input type="text" id="RowKeyUpdate" name="RowKey" class="form-control" value="{{RowKey}}" readonly="readonly">
+            <input type="text" id="RowKeyUpdate" name="observationDate" class="form-control" value="{{ObservationDate}}" readonly="readonly">
           </div>
         </div>
 
