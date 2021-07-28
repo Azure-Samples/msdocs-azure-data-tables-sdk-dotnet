@@ -1,7 +1,4 @@
-﻿using Azure;
-using Azure.Data.Tables;
-using AzureTablesDemoApplication.Data;
-using AzureTablesDemoApplication.Entities;
+﻿using AzureTablesDemoApplication.Data;
 using AzureTablesDemoApplication.Models;
 using AzureTablesDemoApplication.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +6,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AzureTablesDemoApplication.Pages

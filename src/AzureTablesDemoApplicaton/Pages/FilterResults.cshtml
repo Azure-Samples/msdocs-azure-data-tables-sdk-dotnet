@@ -126,9 +126,9 @@
         <tr>
             <th>Station Name</th>
             <th>Observation Date</th>
-            @foreach (var columnName in Model.ColumnNames)
+            @foreach (var fieldName in Model.FieldNames)
             {
-                <th>@columnName</th>
+                <th>@fieldName</th>
             }
         </tr>
     </thead>
@@ -137,9 +137,9 @@
 {
 
     <tr>
-        <td>@item.PartitionKey</td>
-        <td>@item.RowKey</td>
-        @foreach (var column in Model.ColumnNames)
+        <td>@item.StationName</td>
+        <td>@item.ObservationDate</td>
+        @foreach (var column in Model.FieldNames)
         {
             <td>@item[column]</td>
         }
