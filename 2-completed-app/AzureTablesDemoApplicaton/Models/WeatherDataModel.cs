@@ -10,34 +10,32 @@ namespace AzureTablesDemoApplication.Models
 {
     public class WeatherDataModel 
     {
-        // Captures all of the weather data fields and values -- temp, humidity, wind speed, etc
-        private Dictionary<string, object> _fields = new Dictionary<string, object>();
+        // Captures all of the weather data properties -- temp, humidity, wind speed, etc
+        private Dictionary<string, object> _properties = new Dictionary<string, object>();
 
         public string StationName { get; set; }
 
         public string ObservationDate { get; set; }
 
+        public DateTimeOffset? Timestamp { get; set; }
 
-        public object this[string key] 
+        public string Etag { get; set; }
+
+
+        public object this[string name] 
         { 
-            get => (_fields.ContainsKey(key)) ? _fields[key] : null; 
-            set => _fields[key] = value; 
+            get => ( ContainsProperty(name)) ? _properties[name] : null; 
+            set => _properties[name] = value; 
         }
 
-        public ICollection<string> FieldNames => _fields.Keys;
+        public ICollection<string> PropertyNames => _properties.Keys;
 
-        public int FieldCount => _fields.Count;
+        public int PropertyCount => _properties.Count;
 
 
-        public void Add(string key, object value)
+        public bool ContainsProperty(string name)
         {
-            _fields.Add(key, value);
-        }
-
-
-        public bool ContainsKey(string key)
-        {
-            return _fields.ContainsKey(key);
+            return _properties.ContainsKey(name);
         }
 
     }

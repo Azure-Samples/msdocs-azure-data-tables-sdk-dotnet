@@ -64,6 +64,8 @@ namespace AzureTablesDemoApplication.Services
                 WeatherDataModel observation = new WeatherDataModel();
                 observation.StationName = entity.PartitionKey;
                 observation.ObservationDate = entity.RowKey;
+                observation.Timestamp = entity.Timestamp;
+                observation.Etag = entity.ETag.ToString();
 
                 var measurements = entity.Keys.Where(key => !EXCLUDE_TABLE_ENTITY_KEYS.Contains(key));
                 foreach (var key in measurements)
@@ -148,39 +150,39 @@ namespace AzureTablesDemoApplication.Services
         }
 
 
-        public void InsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> fields)
+        public void InsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> properties)
         {
             TableEntity entity = new TableEntity();
             entity.PartitionKey = partitionKey;
             entity.RowKey = rowKey;
 
-            foreach (string fieldName in fields.Keys)
+            foreach (string propertyName in properties.Keys)
             {
-                var value = fields[fieldName];
+                var value = properties[propertyName];
                 
                 if (Double.TryParse(value, out double number))
-                    entity[fieldName] = number;
+                    entity[propertyName] = number;
                 else
-                    entity[fieldName] = value;
+                    entity[propertyName] = value;
             }
             _tableClient.AddEntity(entity);
         }
 
 
-        public void UpsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> fields)
+        public void UpsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> properties)
         {
             TableEntity entity = new TableEntity();
             entity.PartitionKey = partitionKey;
             entity.RowKey = rowKey;
 
-            foreach (string fieldName in fields.Keys)
+            foreach (string propertyNames in properties.Keys)
             {
-                var value = fields[fieldName];
+                var value = properties[propertyNames];
 
                 if (Double.TryParse(value, out double number))
-                    entity[fieldName] = number;
+                    entity[propertyNames] = number;
                 else
-                    entity[fieldName] = value;
+                    entity[propertyNames] = value;
             }
             _tableClient.UpsertEntity(entity);
         }
@@ -214,19 +216,19 @@ namespace AzureTablesDemoApplication.Services
         }
 
 
-        public void UpdateEntity(string partitionKey, string rowKey, IDictionary<string, string> fields)
+        public void UpdateEntity(string partitionKey, string rowKey, IDictionary<string, string> properties)
         {
             // Use the partition key and row key to get the entity
             TableEntity entity = _tableClient.GetEntity<TableEntity>(partitionKey, rowKey).Value;
 
-            foreach (string fieldName in fields.Keys)
+            foreach (string propertyName in properties.Keys)
             {
-                var value = fields[fieldName];
+                var value = properties[propertyName];
 
                 if (Double.TryParse(value, out double number))
-                    entity[fieldName] = number;
+                    entity[propertyName] = number;
                 else
-                    entity[fieldName] = value;
+                    entity[propertyName] = value;
             }
 
             _tableClient.UpdateEntity(entity, ETag.All);

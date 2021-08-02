@@ -35,7 +35,7 @@ namespace AzureTablesDemoApplication.Pages
         {
             WeatherObservations = _tablesService.GetAllRows();
 
-            FieldNames = WeatherObservations.SelectMany(e => e.FieldNames).Distinct();           
+            FieldNames = WeatherObservations.SelectMany(e => e.PropertyNames).Distinct();           
         }
 
 
@@ -75,13 +75,13 @@ namespace AzureTablesDemoApplication.Pages
             string partitionKey = model.StationName;
             string rowKey = $"{model.ObservationDate} {model.ObservationTime}";
 
-            // The rest of the fields and values are in the form.  But we want to exclude the elements we
+            // The rest of the properties and values are in the form.  But we want to exclude the elements we
             // already have from the model and the __RequestVerificationToken when we build our dictionary
-            var fields = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
+            var properties = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
                 .Select(key => new KeyValuePair<string, string>(key, Request.Form[key].First()))
                 .ToDictionary(item => item.Key, item => item.Value);
 
-            _tablesService.InsertExpandableData(partitionKey, rowKey, fields);
+            _tablesService.InsertExpandableData(partitionKey, rowKey, properties);
 
             return RedirectToPage("index", "Get");
         }
@@ -93,13 +93,13 @@ namespace AzureTablesDemoApplication.Pages
             string partitionKey = model.StationName;
             string rowKey = $"{model.ObservationDate} {model.ObservationTime}";
 
-            // The rest of the fields and values are in the form.  But we want to exclude the elements we
+            // The rest of the properties and values are in the form.  But we want to exclude the elements we
             // already have from the model and the __RequestVerificationToken when we build our dictionary
-            var fields = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
+            var properties = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
                 .Select(key => new KeyValuePair<string, string>(key, Request.Form[key].First()))
                 .ToDictionary(item => item.Key, item => item.Value);
 
-            _tablesService.UpsertExpandableData(partitionKey, rowKey, fields);
+            _tablesService.UpsertExpandableData(partitionKey, rowKey, properties);
 
             return RedirectToPage("index", "Get");
         }
@@ -126,13 +126,13 @@ namespace AzureTablesDemoApplication.Pages
         public IActionResult OnPostUpdateEntity(string stationName, string observationDate)
         {
             // The partition key (stationName) and row key (observationDate) are passed as parameters but
-            // to get the rest of the fields, we have to extract them from the from data (ignoring fields
+            // to get the rest of the properties, we have to extract them from the from data (ignoring properties
             // we already have and __RequestVerificationToken when we build our dictionary)          
-            var fields = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
+            var properties = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
                 .Select(key => new KeyValuePair<string, string>(key, Request.Form[key].First()))
                 .ToDictionary(item => item.Key, item => item.Value);
 
-            _tablesService.UpdateEntity(stationName, observationDate, fields);
+            _tablesService.UpdateEntity(stationName, observationDate, properties);
 
             return RedirectToPage("index", "Get");
         }

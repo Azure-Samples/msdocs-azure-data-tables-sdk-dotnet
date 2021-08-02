@@ -546,10 +546,10 @@
 @functions {
     public static string FormatEntityAsJson(WeatherDataModel model)
     {
-        var fieldNames = model.FieldNames;
-        var fields = fieldNames.Select(fieldName => new { FieldName = fieldName, Value = model[fieldName] });
+        var propertyNames = model.PropertyNames;
+        var properties = propertyNames.Select(propertyName => new { PropertyName = propertyName, Value = model[propertyName] });
 
-        var data = new { StationName = model.StationName, ObservationDate = model.ObservationDate, Fields = fields };
+        var data = new { StationName = model.StationName, ObservationDate = model.ObservationDate, Properties = properties };
 
         return System.Text.Json.JsonSerializer.Serialize(data);
     }
@@ -598,13 +598,13 @@
 
         <hr />
 
-        {{#each Fields}}
+        {{#each Properties}}
             <div class="row g-3 mb-2">
               <div class="col-sm-4">
-                <label for="{{this.FieldName}}Update" class="col-form-label">{{this.FieldName}}</label>
+                <label for="{{this.PropertyName}}Update" class="col-form-label">{{this.PropertyName}}</label>
               </div>
               <div class="col-sm-8">
-                <input type="text" id="{{this.FieldName}}Update" name="{{this.FieldName}}" class="form-control" value="{{this.Value}}">
+                <input type="text" id="{{this.PropertyName}}Update" name="{{this.PropertyName}}" class="form-control" value="{{this.Value}}">
               </div>
             </div>
 	    {{/each}}

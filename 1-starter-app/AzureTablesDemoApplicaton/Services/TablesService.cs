@@ -63,13 +63,13 @@ namespace AzureTablesDemoApplication.Services
         }
 
 
-        public void InsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> fields)
+        public void InsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> properties)
         {
 
         }
 
 
-        public void UpsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> fields)
+        public void UpsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> properties)
         {
 
         }
@@ -86,7 +86,7 @@ namespace AzureTablesDemoApplication.Services
         }
 
 
-        public void UpdateEntity(string partitionKey, string rowKey, IDictionary<string, string> fields)
+        public void UpdateEntity(string partitionKey, string rowKey, IDictionary<string, string> properties)
         {
 
         }

@@ -16,7 +16,7 @@ namespace AzureTablesDemoApplication.Pages
         private readonly ILogger<FilterResultsModel> _logger;
         private TablesService _tablesService;
 
-        public IEnumerable<string> FieldNames { get; set; }
+        public IEnumerable<string> ColumnNames { get; set; }
         public IEnumerable<WeatherDataModel> WeatherObservations { get; set; }
 
 
@@ -31,7 +31,7 @@ namespace AzureTablesDemoApplication.Pages
         {
             WeatherObservations = _tablesService.GetFilteredRows(inputModel);
 
-            FieldNames = WeatherObservations.SelectMany(e => e.FieldNames).Distinct();
+            ColumnNames = WeatherObservations.SelectMany(e => e.PropertyNames).Distinct();
         }
 
 
