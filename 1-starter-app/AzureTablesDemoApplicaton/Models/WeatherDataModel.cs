@@ -17,6 +17,9 @@ namespace AzureTablesDemoApplication.Models
 
         public string ObservationDate { get; set; }
 
+        public DateTimeOffset? Timestamp { get; set; }
+
+        public string Etag { get; set; }
 
         public object this[string key] 
         { 

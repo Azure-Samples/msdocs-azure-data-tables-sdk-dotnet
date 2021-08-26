@@ -21,7 +21,6 @@ namespace AzureTablesDemoApplication.Models
 
         public string Etag { get; set; }
 
-
         public object this[string name] 
         { 
             get => ( ContainsProperty(name)) ? _properties[name] : null; 
@@ -32,11 +31,6 @@ namespace AzureTablesDemoApplication.Models
 
         public int PropertyCount => _properties.Count;
 
-
-        public bool ContainsProperty(string name)
-        {
-            return _properties.ContainsKey(name);
-        }
-
+        public bool ContainsProperty(string name) => _properties.ContainsKey(name);       
     }
 }

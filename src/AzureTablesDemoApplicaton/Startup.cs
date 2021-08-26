@@ -32,11 +32,12 @@ namespace AzureTablesDemoApplication
                     options.Filters.Add(new ValidationFilter());
                 });
 
-
-            var connectionString = Configuration.GetConnectionString("CosmosDatabase");
+            
+            var connectionString = Configuration.GetConnectionString("CosmosAzPsDatabase");
+            //var connectionString = Configuration.GetConnectionString("CosmosDatabase");
             //var connectionString = Configuration.GetConnectionString("StorageTables");
             services.AddSingleton<TableClient>(new TableClient(connectionString, "WeatherData"));
-
+            
             services.AddSingleton<TablesService>();
         }
 

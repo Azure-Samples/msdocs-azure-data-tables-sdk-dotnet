@@ -1,4 +1,5 @@
 ﻿using AzureTablesDemoApplication.Data;
+using AzureTablesDemoApplication.Entities;
 using AzureTablesDemoApplication.Models;
 using AzureTablesDemoApplication.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +18,7 @@ namespace AzureTablesDemoApplication.Pages
         private TablesService _tablesService;
 
 
-        public string[] EXCLUDE_FORM_KEYS = { "stationName", "observationDate", "observationTime", "__RequestVerificationToken" };
+        public string[] EXCLUDE_FORM_KEYS = { "stationName", "observationDate", "observationTime", "etag", "__RequestVerificationToken" };
 
 
         public IndexModel(ILogger<IndexModel> logger, TablesService tablesService)
@@ -71,17 +72,24 @@ namespace AzureTablesDemoApplication.Pages
 
         public IActionResult OnPostInsertExpandableData(ExpandableWeatherInputModel model)
         {
-            // The station name (partition key) and date and time elements are in the model object
-            string partitionKey = model.StationName;
-            string rowKey = $"{model.ObservationDate} {model.ObservationTime}";
+            ExpandableWeatherObject weatherObject = new ExpandableWeatherObject();
+            weatherObject.StationName = model.StationName;
+            weatherObject.ObservationDate = $"{model.ObservationDate} {model.ObservationTime}";
 
             // The rest of the properties and values are in the form.  But we want to exclude the elements we
             // already have from the model and the __RequestVerificationToken when we build our dictionary
-            var properties = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
-                .Select(key => new KeyValuePair<string, string>(key, Request.Form[key].First()))
-                .ToDictionary(item => item.Key, item => item.Value);
+            var propertyNames = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key));
+            foreach (string name in propertyNames)
+            {
+                string value = Request.Form[name].First();
 
-            _tablesService.InsertExpandableData(partitionKey, rowKey, properties);
+                if (Double.TryParse(value, out double number))
+                    weatherObject[name] = number;
+                else
+                    weatherObject[name] = value;
+            }
+
+            _tablesService.InsertExpandableData(weatherObject);
 
             return RedirectToPage("index", "Get");
         }
@@ -89,17 +97,24 @@ namespace AzureTablesDemoApplication.Pages
 
         public IActionResult OnPostUpsertExpandableData(ExpandableWeatherInputModel model)
         {
-            // The station name (partition key) and date and time elements are in the model object
-            string partitionKey = model.StationName;
-            string rowKey = $"{model.ObservationDate} {model.ObservationTime}";
+            ExpandableWeatherObject weatherObject = new ExpandableWeatherObject();
+            weatherObject.StationName = model.StationName;
+            weatherObject.ObservationDate = $"{model.ObservationDate} {model.ObservationTime}";
 
             // The rest of the properties and values are in the form.  But we want to exclude the elements we
             // already have from the model and the __RequestVerificationToken when we build our dictionary
-            var properties = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
-                .Select(key => new KeyValuePair<string, string>(key, Request.Form[key].First()))
-                .ToDictionary(item => item.Key, item => item.Value);
+            var propertyNames = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key));
+            foreach (string name in propertyNames)
+            {
+                string value = Request.Form[name].First();
 
-            _tablesService.UpsertExpandableData(partitionKey, rowKey, properties);
+                if (Double.TryParse(value, out double number))
+                    weatherObject[name] = number;
+                else
+                    weatherObject[name] = value;
+            }
+
+            _tablesService.UpsertExpandableData(weatherObject);
 
             return RedirectToPage("index", "Get");
         }
@@ -123,16 +138,27 @@ namespace AzureTablesDemoApplication.Pages
         }
 
 
-        public IActionResult OnPostUpdateEntity(string stationName, string observationDate)
+        public IActionResult OnPostUpdateEntity(string stationName, string observationDate, string etag)
         {
-            // The partition key (stationName) and row key (observationDate) are passed as parameters but
-            // to get the rest of the properties, we have to extract them from the from data (ignoring properties
-            // we already have and __RequestVerificationToken when we build our dictionary)          
-            var properties = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key))
-                .Select(key => new KeyValuePair<string, string>(key, Request.Form[key].First()))
-                .ToDictionary(item => item.Key, item => item.Value);
+            UpdateWeatherObject weatherObject = new UpdateWeatherObject();
+            weatherObject.StationName = stationName;
+            weatherObject.ObservationDate = observationDate;
+            weatherObject.Etag = etag;
 
-            _tablesService.UpdateEntity(stationName, observationDate, properties);
+            // The rest of the properties and values are in the form.  But we want to exclude the elements we
+            // already have from the model and the __RequestVerificationToken when we build our dictionary
+            var propertyNames = Request.Form.Keys.Where(key => !EXCLUDE_FORM_KEYS.Contains(key));
+            foreach (string name in propertyNames)
+            {
+                string value = Request.Form[name].First();
+
+                if (Double.TryParse(value, out double number))
+                    weatherObject[name] = number;
+                else
+                    weatherObject[name] = value;
+            }
+
+            _tablesService.UpdateEntity(weatherObject);
 
             return RedirectToPage("index", "Get");
         }

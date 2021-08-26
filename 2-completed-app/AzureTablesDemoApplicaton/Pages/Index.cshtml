@@ -549,7 +549,7 @@
         var propertyNames = model.PropertyNames;
         var properties = propertyNames.Select(propertyName => new { PropertyName = propertyName, Value = model[propertyName] });
 
-        var data = new { StationName = model.StationName, ObservationDate = model.ObservationDate, Properties = properties };
+        var data = new { StationName = model.StationName, ObservationDate = model.ObservationDate, Etag = model.Etag, Properties = properties };
 
         return System.Text.Json.JsonSerializer.Serialize(data);
     }
@@ -595,7 +595,7 @@
             <input type="text" id="RowKeyUpdate" name="observationDate" class="form-control" value="{{ObservationDate}}" readonly="readonly">
           </div>
         </div>
-
+        <input type="hidden" name="etag" value="{{Etag}}" />
         <hr />
 
         {{#each Properties}}

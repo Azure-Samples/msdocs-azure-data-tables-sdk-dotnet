@@ -63,13 +63,13 @@ namespace AzureTablesDemoApplication.Services
         }
 
 
-        public void InsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> properties)
+        public void InsertExpandableData(ExpandableWeatherObject weatherObject)
         {
 
         }
 
 
-        public void UpsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> properties)
+        public void UpsertExpandableData(ExpandableWeatherObject weatherObject)
         {
 
         }
@@ -86,7 +86,7 @@ namespace AzureTablesDemoApplication.Services
         }
 
 
-        public void UpdateEntity(string partitionKey, string rowKey, IDictionary<string, string> properties)
+        public void UpdateEntity(UpdateWeatherObject weatherObject)
         {
 
         }

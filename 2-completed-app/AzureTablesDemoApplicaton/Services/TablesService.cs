@@ -27,7 +27,7 @@ namespace AzureTablesDemoApplication.Services
         {
             Pageable<TableEntity> entities = _tableClient.Query<TableEntity>();
 
-            return MapTableEntityToWeatherDataModel(entities);
+            return entities.Select(e => MapTableEntityToWeatherDataModel(e));
         }
 
 
@@ -53,27 +53,24 @@ namespace AzureTablesDemoApplication.Services
             string filter = String.Join(" and ", filters);
             Pageable<TableEntity> entities = _tableClient.Query<TableEntity>(filter);
 
-            return MapTableEntityToWeatherDataModel(entities);
+            return entities.Select(e => MapTableEntityToWeatherDataModel(e));
         }
 
 
-        public IEnumerable<WeatherDataModel> MapTableEntityToWeatherDataModel(Pageable<TableEntity> entities)
+        public WeatherDataModel MapTableEntityToWeatherDataModel(TableEntity entity)
         {
-            foreach (var entity in entities)
-            {
-                WeatherDataModel observation = new WeatherDataModel();
-                observation.StationName = entity.PartitionKey;
-                observation.ObservationDate = entity.RowKey;
-                observation.Timestamp = entity.Timestamp;
-                observation.Etag = entity.ETag.ToString();
+            WeatherDataModel observation = new WeatherDataModel();
+            observation.StationName = entity.PartitionKey;
+            observation.ObservationDate = entity.RowKey;
+            observation.Timestamp = entity.Timestamp;
+            observation.Etag = entity.ETag.ToString();
 
-                var measurements = entity.Keys.Where(key => !EXCLUDE_TABLE_ENTITY_KEYS.Contains(key));
-                foreach (var key in measurements)
-                {
-                    observation[key] = entity[key];
-                }
-                yield return observation;
+            var measurements = entity.Keys.Where(key => !EXCLUDE_TABLE_ENTITY_KEYS.Contains(key));
+            foreach (var key in measurements)
+            {
+                observation[key] = entity[key];
             }
+            return observation;            
         }
 
 
@@ -117,8 +114,8 @@ namespace AzureTablesDemoApplication.Services
         public void InsertCustomEntity(WeatherInputModel model)
         {
             WeatherDataEntity customEntity = new WeatherDataEntity();
-            customEntity.PartitionKey = model.StationName;
-            customEntity.RowKey = $"{model.ObservationDate} {model.ObservationTime}";
+            customEntity.StationName = model.StationName;
+            customEntity.ObservationDate = $"{model.ObservationDate} {model.ObservationTime}";
 
             // The remaining values are strongly typed properties on the custom entity type
             customEntity.Temperature = model.Temperature;
@@ -135,8 +132,8 @@ namespace AzureTablesDemoApplication.Services
         public void UpsertCustomEntity(WeatherInputModel model)
         {
             WeatherDataEntity customEntity = new WeatherDataEntity();
-            customEntity.PartitionKey = model.StationName;
-            customEntity.RowKey = $"{model.ObservationDate} {model.ObservationTime}";
+            customEntity.StationName = model.StationName;
+            customEntity.ObservationDate = $"{model.ObservationDate} {model.ObservationTime}";
 
             // The remaining values are strongly typed properties on the custom entity type
             customEntity.Temperature = model.Temperature;
@@ -150,39 +147,31 @@ namespace AzureTablesDemoApplication.Services
         }
 
 
-        public void InsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> properties)
+        public void InsertExpandableData(ExpandableWeatherObject weatherObject)
         {
             TableEntity entity = new TableEntity();
-            entity.PartitionKey = partitionKey;
-            entity.RowKey = rowKey;
+            entity.PartitionKey = weatherObject.StationName;
+            entity.RowKey = weatherObject.ObservationDate;
 
-            foreach (string propertyName in properties.Keys)
+            foreach (string propertyName in weatherObject.PropertyNames)
             {
-                var value = properties[propertyName];
-                
-                if (Double.TryParse(value, out double number))
-                    entity[propertyName] = number;
-                else
-                    entity[propertyName] = value;
+                var value = weatherObject[propertyName];
+                entity[propertyName] = value;
             }
             _tableClient.AddEntity(entity);
         }
 
-
-        public void UpsertExpandableData(string partitionKey, string rowKey, IDictionary<string, string> properties)
+        
+        public void UpsertExpandableData(ExpandableWeatherObject weatherObject)
         {
             TableEntity entity = new TableEntity();
-            entity.PartitionKey = partitionKey;
-            entity.RowKey = rowKey;
+            entity.PartitionKey = weatherObject.StationName;
+            entity.RowKey = weatherObject.ObservationDate;
 
-            foreach (string propertyNames in properties.Keys)
+            foreach (string propertyName in weatherObject.PropertyNames)
             {
-                var value = properties[propertyNames];
-
-                if (Double.TryParse(value, out double number))
-                    entity[propertyNames] = number;
-                else
-                    entity[propertyNames] = value;
+                var value = weatherObject[propertyName];
+                entity[propertyName] = value;
             }
             _tableClient.UpsertEntity(entity);
         }
@@ -216,22 +205,21 @@ namespace AzureTablesDemoApplication.Services
         }
 
 
-        public void UpdateEntity(string partitionKey, string rowKey, IDictionary<string, string> properties)
+        public void UpdateEntity(UpdateWeatherObject weatherObject)
         {
+            string partitionKey = weatherObject.StationName;
+            string rowKey = weatherObject.ObservationDate;
+
             // Use the partition key and row key to get the entity
             TableEntity entity = _tableClient.GetEntity<TableEntity>(partitionKey, rowKey).Value;
 
-            foreach (string propertyName in properties.Keys)
+            foreach (string propertyName in weatherObject.PropertyNames)
             {
-                var value = properties[propertyName];
-
-                if (Double.TryParse(value, out double number))
-                    entity[propertyName] = number;
-                else
-                    entity[propertyName] = value;
+                var value = weatherObject[propertyName];
+                entity[propertyName] = value;
             }
 
-            _tableClient.UpdateEntity(entity, ETag.All);
+            _tableClient.UpdateEntity(entity, new ETag(weatherObject.Etag));
         }
 
     }
