@@ -1,6 +1,6 @@
 LOCATION='eastus'
 RESOURCE_GROUP_NAME='rg-msdocs-tables-sdk-demo'
-COSMOS_ACCOUNT_NAME='cosmos-msdocs-tables-sdk-demo'
+COSMOS_ACCOUNT_NAME='cosmos-msdocs-tables-sdk-demo-123'
 COSMOS_TABLE_NAME='WeatherData'
 
 
@@ -20,10 +20,12 @@ az cosmosdb table create \
     --throughput 400
 
 
-
-az cosmosdb list-connection-strings \
+az cosmosdb keys list \
+    --type connection-strings \
     --resource-group $RESOURCE_GROUP_NAME \
-    --name $COSMOS_ACCOUNT_NAME
+    --name $COSMOS_ACCOUNT_NAME \
+    --query "connectionStrings[?description== 'Primary Table Connection String'].connectionString" \
+    --output tsv
 
 
 # Delete the table
