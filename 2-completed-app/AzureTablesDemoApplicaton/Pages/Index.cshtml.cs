@@ -55,21 +55,6 @@ namespace AzureTablesDemoApplication.Pages
         }
 
 
-        public IActionResult OnPostInsertCustomEntity(WeatherInputModel model)
-        {
-            _tablesService.InsertCustomEntity(model);
-
-            return RedirectToPage("index", "Get");
-        }
-
-        public IActionResult OnPostUpsertCustomEntity(WeatherInputModel model)
-        {
-            _tablesService.UpsertCustomEntity(model);
-
-            return RedirectToPage("index", "Get");
-        }
-
-
         public IActionResult OnPostInsertExpandableData(ExpandableWeatherInputModel model)
         {
             ExpandableWeatherObject weatherObject = new ExpandableWeatherObject();
@@ -128,11 +113,12 @@ namespace AzureTablesDemoApplication.Pages
         }
 
 
-        public IActionResult OnPostInsertBulkData(string units, string city)
+        public IActionResult OnPostInsertSampleData(string units, string city)
         {
             var bulkData = SampleWeatherData.GetSampleData(units, city);
 
-            _tablesService.InsertBulkData(bulkData);
+            foreach (var item in bulkData)
+                _tablesService.UpsertTableEntity(item);
 
             return RedirectToPage("index", "Get");
         }

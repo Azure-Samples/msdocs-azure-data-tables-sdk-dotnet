@@ -111,42 +111,6 @@ namespace AzureTablesDemoApplication.Services
         }
 
 
-        public void InsertCustomEntity(WeatherInputModel model)
-        {
-            WeatherDataEntity customEntity = new WeatherDataEntity();
-            customEntity.StationName = model.StationName;
-            customEntity.ObservationDate = $"{model.ObservationDate} {model.ObservationTime}";
-
-            // The remaining values are strongly typed properties on the custom entity type
-            customEntity.Temperature = model.Temperature;
-            customEntity.Humidity = model.Humidity;
-            customEntity.Barometer = model.Barometer;
-            customEntity.WindDirection = model.WindDirection;
-            customEntity.WindSpeed = model.WindSpeed;
-            customEntity.Precipitation = model.Precipitation;
-
-            _tableClient.AddEntity(customEntity);
-        }
-
-
-        public void UpsertCustomEntity(WeatherInputModel model)
-        {
-            WeatherDataEntity customEntity = new WeatherDataEntity();
-            customEntity.StationName = model.StationName;
-            customEntity.ObservationDate = $"{model.ObservationDate} {model.ObservationTime}";
-
-            // The remaining values are strongly typed properties on the custom entity type
-            customEntity.Temperature = model.Temperature;
-            customEntity.Humidity = model.Humidity;
-            customEntity.Barometer = model.Barometer;
-            customEntity.WindDirection = model.WindDirection;
-            customEntity.WindSpeed = model.WindSpeed;
-            customEntity.Precipitation = model.Precipitation;
-
-            _tableClient.UpsertEntity(customEntity);
-        }
-
-
         public void InsertExpandableData(ExpandableWeatherObject weatherObject)
         {
             TableEntity entity = new TableEntity();
@@ -179,29 +143,6 @@ namespace AzureTablesDemoApplication.Services
         public void RemoveEntity(string partitionKey, string rowKey)
         {
             _tableClient.DeleteEntity(partitionKey, rowKey);           
-        }
-
-
-        public void InsertBulkData(IEnumerable<WeatherInputModel> items)
-        {
-            // First convert the incoming objects to TableEntities
-            IEnumerable<TableEntity> entities = items.Select(item =>
-            {
-                var entity = new TableEntity(item.StationName, item.ObservationDate);
-                entity["Temperature"] = item.Temperature;
-                entity["Humidity"] = item.Humidity;
-                entity["Barometer"] = item.Barometer;
-                entity["WindDirection"] = item.WindDirection;
-                entity["WindSpeed"] = item.WindSpeed;
-                entity["Precipitation"] = item.Precipitation;
-
-                return entity;
-            });
-            
-            // Now wrap each TableEntity in a TableTransactionAction object
-             var transactionActions = entities.Select(entity => new TableTransactionAction(TableTransactionActionType.Add, entity));
-
-            _tableClient.SubmitTransaction(transactionActions);
         }
 
 

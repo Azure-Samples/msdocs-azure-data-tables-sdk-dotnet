@@ -51,18 +51,6 @@ namespace AzureTablesDemoApplication.Services
         }
 
 
-        public void InsertCustomEntity(WeatherInputModel model)
-        {
-
-        }
-
-
-        public void UpsertCustomEntity(WeatherInputModel model)
-        {
-
-        }
-
-
         public void InsertExpandableData(ExpandableWeatherObject weatherObject)
         {
 
@@ -75,12 +63,6 @@ namespace AzureTablesDemoApplication.Services
         }
 
         public void RemoveEntity(string partitionKey, string rowKey)
-        {
-
-        }
-
-
-        public void InsertBulkData(IEnumerable<WeatherInputModel> items)
         {
 
         }

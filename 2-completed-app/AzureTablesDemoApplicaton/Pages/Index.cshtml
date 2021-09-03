@@ -26,13 +26,10 @@
         <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#insertUsingTableEntity">Insert using Table Entity</button>
     </div>     
     <div class="col-auto">
-        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#insertUsingCustomEntity">Insert using Custom Entity</button>
-    </div>
-    <div class="col-auto">
         <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#insertUsingExpandedData">Insert using Expandable Data</button>
     </div>    
     <div class="col-auto">
-        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#insertBulkData">Insert Bulk Data</button>
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#insertSampleData">Insert Sample Data</button>
     </div>
 </div>
 
@@ -185,118 +182,6 @@
         <!-- </form> -->
     </div>
 </div>
-
-
-<!-- Insert with CustomEntity Dialog -->
-<div id="insertUsingCustomEntity" class="modal fade" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <form method="post">            
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Insert using Custom Entity (implementing ITableEntity)</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3 mb-2">
-                      <div class="col-sm-4">
-                        <label for="stationNameCustomEntity" class="col-form-label">Station Name</label>
-                      </div>
-                      <div class="col-sm-8">
-                        <input type="text" id="stationNameCustomEntity" name="stationName" class="form-control" placeholder="Weather station name">
-                      </div>
-                    </div>
-
-                    <div class="row g-3 mb-2">
-                      <div class="col-sm-4">
-                        <label for="observationDateCustomEntity" class="col-form-label">Date/Time</label>
-                      </div>
-                      <div class="col-sm-4">
-                        <input type="date" id="observationDateCustomEntity" name="observationDate" class="form-control">
-                      </div>
-                      <div class="col-sm-4">
-                        <input type="time" id="observationTimeCustomEntity" name="observationTime" class="form-control">
-                      </div>
-                    </div>
-
-                    <div class="row g-3 mb-2">
-                      <div class="col-sm-4">
-                        <label for="temperatureCustomEntity" class="col-form-label">Temperature</label>
-                      </div>
-                      <div class="col-sm-8">
-                        <input type="text" id="temperatureCustomEntity" name="Temperature" class="form-control" placeholder="Current temperature">
-                      </div>
-                    </div>
-
-                    <div class="row g-3 mb-2">
-                      <div class="col-sm-4">
-                        <label for="humidityCustomEntity" class="col-form-label">Humidity</label>
-                      </div>
-                      <div class="col-sm-8">
-                        <input type="text" id="humidityCustomEntity" name="Humidity" class="form-control" placeholder="% Humidity">
-                      </div>
-                    </div>
-
-                    <div class="row g-3 mb-2">
-                      <div class="col-sm-4">
-                        <label for="barometerCustomEntity" class="col-form-label">Barometer</label>
-                      </div>
-                      <div class="col-sm-8">
-                        <input type="text" id="barometerCustomEntity" name="Barometer" class="form-control" placeholder="Atmospheric pressure">
-                      </div>
-                    </div>
-
-                    <div class="row g-3 mb-2">
-                      <div class="col-sm-4">
-                        <label for="windSpeedCustomEntity" class="col-form-label">Wind Direction</label>
-                      </div>
-                      <div class="col-sm-8">
-                          <select id="windDirectionCustomEntity" name="WindDirection" class="form-control">
-                              <option>CALM</option>
-                              <option>N</option>
-                              <option>NE</option>
-                              <option>NW</option>
-                              <option>E</option>
-                              <option>W</option>
-                              <option>SW</option>
-                              <option>SE</option>
-                              <option>S</option>
-                              <option>VARIABLE</option>
-                          </select>
-                      </div>
-                    </div>
-
-                    <div class="row g-3 mb-2">
-                      <div class="col-sm-4">
-                        <label for="windSpeedCustomEntity" class="col-form-label">Wind Speed</label>
-                      </div>
-                      <div class="col-sm-8">
-                        <input type="text" id="windSpeedCustomEntity" name="WindSpeed" class="form-control" placeholder="Wind speed">
-                      </div>
-                    </div>
-
-                    <div class="row g-3 mb-2">
-                      <div class="col-sm-4">
-                        <label for="precipitationCustomEntity" class="col-form-label">Precipitation</label>
-                      </div>
-                      <div class="col-sm-8">
-                        <input type="text" id="precipitationCustomEntity" name="Precipitation" class="form-control" placeholder="Precipitation">
-                      </div>
-                    </div>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" asp-page-handler="insertCustomEntity">Insert</button>
-                    <button type="submit" class="btn btn-primary" asp-page-handler="upsertCustomEntity">Upsert</button>
-                </div>
-            </div>
-        </form>
-        <!-- </form> -->
-    </div>
-</div>
-
-
-
 
 
 
@@ -463,12 +348,12 @@
 
 
 <!-- Bulk Insert Dialog -->
-<div id="insertBulkData" class="modal fade" tabindex="-1" aria-hidden="true">
+<div id="insertSampleData" class="modal fade" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form method="post">            
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Insert bulk data</h5>
+                    <h5 class="modal-title">Insert sample data</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -487,10 +372,10 @@
 
                     <div class="row g-3 mb-2">
                       <div class="col-sm-4">
-                        <label for="bulkDataCity" class="col-form-label">City</label>
+                        <label for="sampleDataCity" class="col-form-label">City</label>
                       </div>
                       <div class="col-sm-8">
-                          <select id="bulkDataCity" name="City" class="form-control">
+                          <select id="sampleDataCity" name="City" class="form-control">
                               <option>Anchorage</option>
                               <option>Chicago</option>
                               <option>Miami</option>
@@ -502,8 +387,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" asp-page-handler="insertBulkData">Insert</button>
-                    <button type="submit" class="btn btn-primary" asp-page-handler="upsertBulkData">Upsert</button>
+                    <button type="submit" class="btn btn-primary" asp-page-handler="insertSampleData">Insert</button>
                 </div>
             </div>
         </form>
