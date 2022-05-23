@@ -23,6 +23,7 @@ namespace AzureTablesDemoApplication.Data
                       .Select(x => new WeatherInputModel() { 
                           StationName = x.StationName,
                           ObservationDate = x.ObservationDate,
+                          ObservationTime = x.ObservationTime,
                           Temperature = (x.Temperature -32) * 5f/9f,
                           Humidity = x.Humidity,
                           Barometer = x.Barometer * 33.864,
